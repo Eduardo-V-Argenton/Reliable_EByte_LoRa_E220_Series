@@ -42,22 +42,22 @@
         return lora_response.code;
     }
 
-   byte waitSYN(LoRa_E220 lora, struct Packet<byte>* pck, byte OP){
+   byte waitSYN(LoRa_E220 lora, struct Packet<byte>* pck, byte* operation){
         if (lora.available()  > 1){
             ResponseStructContainer rsc = lora.receiveMessageRSSI(sizeof(Packet<byte>));
             *pck = *(Packet<byte>*) rsc.data;
             rsc.close();
             if(pck->SYN == true){
-                OP = pck->OP;
+                *operation = pck->OP;
                 return 1;
             }
         }
         return 0;
     }
 
-    byte waitSYNACK(LoRa_E220 lora, struct SysConfigs* sc, struct Packet<byte>* pck){
+    byte waitSYNACK(LoRa_E220 lora, unsigned long int time_out_SYNACK, struct Packet<byte>* pck){
         unsigned long startTime = millis();
-        while (millis() - startTime < sc->time_out_SYNACK){
+        while (millis() - startTime < time_out_SYNACK){
             if (lora.available()  > 1){
                 ResponseStructContainer rsc = lora.receiveMessageRSSI(sizeof(Packet<byte>));
                 *pck = *(Packet<byte>*) rsc.data;
@@ -70,9 +70,9 @@
         return 0;
     }
 
-    byte waitACK(LoRa_E220 lora, struct SysConfigs* sc, struct Packet<byte>* pck){
+    byte waitACK(LoRa_E220 lora, unsigned long int time_out_ACK, struct Packet<byte>* pck){
         unsigned long startTime = millis();
-        while (millis() - startTime < sc->time_out_ACK){
+        while (millis() - startTime < time_out_ACK){
             if (lora.available()  > 1){
                 ResponseStructContainer rsc = lora.receiveMessageRSSI(sizeof(Packet<byte>));
                 *pck = *(Packet<byte>*) rsc.data;
