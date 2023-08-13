@@ -1,5 +1,6 @@
 #ifndef RELIABLE_LORA_H
     #define RELIABLE_LORA_H
+
     #ifndef LoRa_E220_h
         #include <LoRa_E220.h> 
     #endif
@@ -7,6 +8,7 @@
     template<typename T>
     struct Packet{
         T data;
+        u_int16_t Checksum;
         byte OP;
         bool ACK = false;
         bool SYN = false;
