@@ -12,7 +12,6 @@
         byte OP;
         bool ACK = false;
         bool SYN = false;
-        bool BRC = false;
     };
 
     byte sendSYN(LoRa_E220 lora, byte receptor_addr[2],byte communication_channel, byte OP){
