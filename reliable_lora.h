@@ -4,8 +4,9 @@
     #ifndef LoRa_E220_h
         #include <LoRa_E220.h> 
     #endif
-    unsigned long int timeOutSYNACK = 5000;
-    unsigned long int timeOutACK = 5000;
+    unsigned long int timeOutSYNACK = 3000;
+    unsigned long int timeOutACK = 3000;
+    unsigned long int timeToRetry = 1000;
     byte senderAddr[2] = {0,0};
     byte receptorAddr[2] = {0,0};
     byte channel = 0;
@@ -85,6 +86,7 @@
     byte waitSYNACK(LoRa_E220 lora, struct Packet<byte>* pck){
         unsigned long startTime = millis();
         while (millis() - startTime < timeOutSYNACK){
+
             if (lora.available()  > 1){
                 ResponseStructContainer rsc = lora.receiveMessageRSSI(sizeof(Packet<byte>));
                 *pck = *(Packet<byte>*) rsc.data;
@@ -118,17 +120,17 @@
         while(waitSYN(lora, &pck, OP) == 0){
             if(millis() - startTime >= timeOutHandshake){return 0;}
         }
-        Serial.println("SYN RECEBIDO");
         lora.setMode(MODE_0_NORMAL);
         sendSYNACK(lora, channel, 1);
-        Serial.println("SYNACK ENVIADO");
+        unsigned long retryTime = millis() + timeToRetry;
         while(waitACK(lora, &pck) == 0){
             if(millis() - startTime >= timeOutHandshake){
                 return -1;}
-            else
+            else if(millis() >= retryTime){
+                retryTime = millis() + timeToRetry;
                 sendSYNACK(lora, channel, 1);
+            }
         }
-        Serial.println("ACK RECEBIDO");
         return 1;
     }
 
@@ -136,19 +138,17 @@
         struct Packet<byte> pck;
         unsigned long startTime = millis();
         sendSYN(lora,channel, OP);
-        Serial.println("SYN ENVIADO");
+        unsigned long retryTime = millis() + timeToRetry;
         while(waitSYNACK(lora, &pck) == 0){
             if(millis() - startTime >= timeOutHandshake){
                 return 0;
             }
-            else{
+            else if(millis() >= retryTime){
                 sendSYN(lora, channel, OP);
-                Serial.println("SYN ENVIADO");
+                retryTime = millis() + timeToRetry;
             }
         }
-        Serial.println("SYNACK RECEBIDO");
         sendACK(lora, channel, OP);
-        Serial.println("ACK ENVIADO");
         return 1;
     }
 #endif
